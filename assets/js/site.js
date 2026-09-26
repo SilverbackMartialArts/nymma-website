@@ -171,10 +171,9 @@
     tax: function (n) { return Math.round(n * (100 + (+CFG.taxPercent || 0))) / 100; },
     current: function () { return { term: pricing.term, freq: pricing.freq }; }
   };
+  // Every membership always shows together here - noting an earlier interest (e.g. tapping "Book Kickboxing"
+  // elsewhere) never hides the other plans, so people can compare before choosing.
   function renderPrices() {
-    var interest = getInterest();
-    var interestPlan = interest ? planOf(interest) : null;
-    var matchExists = !!interestPlan && $$(".plan[data-plan]").some(function (c) { return c.dataset.plan === interest; });
     $$(".plan[data-plan]").forEach(function (card) {
       var key = card.dataset.plan, p = planOf(key); if (!p) return;
       var t = pricing.term, f = pricing.freq, price = perPayment(key, t, f);
@@ -185,23 +184,7 @@
         var reg = +p[t] || 0, regPay = f === "biweek" ? Math.round((CFG.biweekly === "half" ? reg / 2 : reg * 12 / 26) * 100) / 100 : reg;
         was.textContent = promoFor(p, t) && regPay !== price ? "Regular " + money(regPay) + (f === "biweek" ? "/2 weeks" : "/month") : "";
       }
-      card.style.display = (!matchExists || key === interest) ? "" : "none";
     });
-    var plansBox = $(".plans"), rowBox = $(".plan-row");
-    if (plansBox) {
-      var plansVisible = $$(".plan", plansBox).filter(function (c) { return c.style.display !== "none"; });
-      plansBox.style.display = plansVisible.length ? "" : "none";
-      plansBox.classList.toggle("filtered", plansVisible.length === 1);
-    }
-    if (rowBox) {
-      var rowVisible = $$(".plan", rowBox).filter(function (c) { return c.style.display !== "none"; });
-      rowBox.classList.toggle("solo", rowVisible.length === 1);
-    }
-    var note = $("#pricingFilterNote");
-    if (note) {
-      note.hidden = !matchExists;
-      if (matchExists) { var nameEl = $("[data-filter-name]", note); if (nameEl) nameEl.textContent = interestPlan.name; }
-    }
     $$(".toggle [data-term]").forEach(function (b) { b.setAttribute("aria-selected", b.dataset.term === pricing.term); });
     $$(".toggle [data-freq]").forEach(function (b) { b.setAttribute("aria-selected", b.dataset.freq === pricing.freq); });
   }
@@ -210,8 +193,6 @@
   $$("[data-biweekly-note]").forEach(function (el) {
     el.textContent = CFG.biweekly === "half" ? "Every-2-weeks prices are half the monthly price." : "Paying every 2 weeks costs the same per year as paying monthly.";
   });
-  var showAllBtn = $("#pricingShowAll");
-  if (showAllBtn) showAllBtn.addEventListener("click", function () { window.sbInterest.clear(); track("pricing_show_all"); });
   if ($(".plans")) renderPrices();
 
   /* ---------- Google rating + reviews (only real numbers and quotes from config.js) ---------- */
