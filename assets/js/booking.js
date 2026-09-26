@@ -214,9 +214,9 @@
         <h3 data-focus>Claim your free class</h3><p class="sub">Tell us who's training. Next, you'll pick a real class time.</p>
         <span class="lab">Who is the class for?</span>
         <div class="optlist">
-          ${optRow("radio", "who", "ADULT", S.who === "ADULT", "Me", "Adult")}
-          ${optRow("radio", "who", "TEEN", S.who === "TEEN", "My teen", `${S.kidsMax + 1} to 17`)}
-          ${optRow("radio", "who", "CHILD", S.who === "CHILD", "My child", `4 to ${S.kidsMax}`)}
+          ${optRow("radio", "who", "ADULT", S.who === "ADULT", "Adult")}
+          ${optRow("radio", "who", "TEEN", S.who === "TEEN", "Teen")}
+          ${optRow("radio", "who", "CHILD", S.who === "CHILD", "Child")}
         </div>
         <div class="fgrid" style="margin-top:12px">
           ${field("fn", kid() ? "Your first name" : "First name", "text", S.fn, 'autocomplete="given-name"')}
