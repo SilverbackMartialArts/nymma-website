@@ -1,15 +1,22 @@
 /*
-  Silverback online join portal (MOCK-UP).
+  Silverback online join portal.
   Opens from any "Join online" button ([data-join="kickboxing" | "allaccess" | "grappling" | "kids"]).
-  Steps: 1 plan (program, commitment, pay monthly or every 2 weeks) -> 2 details -> 3 sign waiver + agreement -> 4 payment -> done.
+  Steps: 1 plan (program, commitment, pay monthly or every 2 weeks) -> 2 your details -> hand off to the CRM.
   Prices come from config.js "plans" through window.sbPricing (site.js), so the portal always matches the pricing section.
-  This is a preview of the flow only: nothing is sent anywhere, no card field is shown and nothing is charged.
-  Going live needs a public sign-up endpoint in the CRM that hands the visitor to its secure Square checkout.
+  Step 2's "Continue to secure checkout" calls POST /api/public/membership with the chosen program/commitment/frequency
+  (never a price - the CRM always looks up its own plan and its own price) and a name/email/phone. The CRM resolves or
+  creates the lead and returns a real, one-person signing link - the same page staff already send from Signup Links -
+  and this page redirects the browser straight there. The waiver, the membership agreement and the Square card form
+  all happen on that CRM page; this site never collects a card number.
+  While crmBase is empty (config.js), this stays in demo mode: the same steps run, but nothing is sent anywhere and
+  the last step shows what the redirect would have been instead of actually leaving the page.
 */
 (function () {
   "use strict";
   const CFG = window.SILVERBACK || {};
-  const MOCK = true; // this portal never takes payment, so its Demo labels always show (even when booking is live)
+  const B = window.sbBooking;
+  const base = () => (B && B.base ? B.base() : "");
+  const demo = () => !base() && !!CFG.demoMode;
   const P = window.sbPricing;
   if (!P || !P.plans.length) return;
   const track = window.sbTrack || function () {};
@@ -21,20 +28,19 @@
   const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
   const LOCK = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
 
-  const S = { step: 1, plan: "allaccess", term: "3m", freq: "month", fn: "", ln: "", em: "", ph: "", dob: "", cn: "", cdob: "", sig: "", agree: false, billing: false, errs: {}, err: "", busy: false };
+  const S = { step: 1, plan: "allaccess", term: "3m", freq: "month", fn: "", ln: "", em: "", ph: "", dob: "", cn: "", cdob: "", hp: "", errs: {}, err: "", busy: false };
   const plan = () => P.plan(S.plan) || P.plans[0];
   const kids = () => !!plan().kids;
   const terms = () => (kids() ? [["mtm", "Month-to-month"], ["3m", "3 months or longer"]] : [["mtm", "Month-to-month"], ["3m", "3-month commitment"], ["12m", "12-month commitment"]]);
   const price = (t, f) => P.perPayment(S.plan, t || S.term, f || S.freq);
   const every = (f) => ((f || S.freq) === "biweek" ? "every 2 weeks" : "every month");
   const months = () => (S.term === "12m" ? 12 : S.term === "3m" ? 3 : 0);
-  const agreementName = () => (months() ? months() + "-Month" : "Month-to-Month") + " Membership Agreement";
 
   /* ---------------- modal shell ---------------- */
   const overlay = document.createElement("div");
   overlay.className = "modal-overlay";
   overlay.innerHTML = `<div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="joinTitle" tabindex="-1">
-    <div class="modal-head"><h3 class="modal-title" id="joinTitle">Join Silverback</h3><div class="mh-right">${MOCK ? '<span class="demo-pill" title="Mock-up: no payment is taken">Demo</span>' : ""}<button type="button" class="modal-close" aria-label="Close">&times;</button></div></div>
+    <div class="modal-head"><h3 class="modal-title" id="joinTitle">Join Silverback</h3><div class="mh-right">${demo() ? '<span class="demo-pill" title="Mock-up: no payment is taken">Demo</span>' : ""}<button type="button" class="modal-close" aria-label="Close">&times;</button></div></div>
     <div class="bk" aria-live="polite"></div>
     <div class="also"><span>No registration fee</span><span>&middot;</span><span>Secure payments by Square</span></div></div>`;
   document.body.appendChild(overlay);
@@ -47,11 +53,11 @@
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && overlay.classList.contains("open")) hide(); });
 
   /* ---------------- pieces ---------------- */
-  const LABELS = ["Plan", "Details", "Sign", "Payment"];
+  const LABELS = ["Plan", "Details", "Checkout"];
   const bar = (n) => `<div class="steptabs" aria-hidden="true">${LABELS.map((l, i) => {
     const k = i + 1, st = k < n ? "done" : k === n ? "active" : "todo";
     return `<div class="steptab ${st}"><i>${k < n ? "✓" : k}</i><span>${l}</span></div>`; }).join("")}</div>`;
-  const optRow = (name, value, checked, label, sub) => `<label class="optrow"><input type="${name === "agree" || name === "billing" ? "checkbox" : "radio"}" name="join-${name}" data-act="${name}" data-v="${esc(value)}" ${checked ? "checked" : ""}>
+  const optRow = (name, value, checked, label, sub) => `<label class="optrow"><input type="radio" name="join-${name}" data-act="${name}" data-v="${esc(value)}" ${checked ? "checked" : ""}>
     <span class="optbox" aria-hidden="true"></span><span>${label}${sub ? ` <small>${sub}</small>` : ""}</span></label>`;
   const field = (id, label, type, extra) => `<div class="fld ${S.errs[id] ? "bad" : ""}"><label for="join-${id}">${label}</label>
     <input id="join-${id}" data-f="${id}" type="${type}" value="${esc(S[id])}" ${extra || ""}>${S.errs[id] ? `<div class="msg">${esc(S.errs[id])}</div>` : ""}</div>`;
@@ -91,6 +97,7 @@
   }
 
   /* ---------------- step 2: details ---------------- */
+  const hpf = () => `<div class="hp" aria-hidden="true"><label>Website<input data-f="hp" tabindex="-1" autocomplete="off" value="${esc(S.hp || "")}"></label></div>`;
   function draw2() {
     const k = kids();
     set(`${bar(2)}${back(1, "Change plan")}<h3>${k ? "Parent or guardian details" : "Your details"}</h3>
@@ -98,7 +105,7 @@
       <div class="fgrid">${field("fn", "First name", "text", 'autocomplete="given-name"')}${field("ln", "Last name", "text", 'autocomplete="family-name"')}
         ${field("em", "Email", "email", 'autocomplete="email" inputmode="email"')}${field("ph", "Mobile phone", "tel", 'autocomplete="tel" inputmode="tel"')}</div>
       <div class="fgrid" style="margin-top:10px">${k ? field("cn", "Child's first name", "text") + field("cdob", "Child's date of birth", "date") : field("dob", "Date of birth", "date", 'autocomplete="bday"')}</div>
-      ${errBox()}<button class="btn btn-red btn-lg btn-block" data-act="go" data-v="3">Continue</button>
+      ${hpf()}${errBox()}<button class="btn btn-red btn-lg btn-block" data-act="go" data-v="3">Continue</button>
       <p class="note">By continuing, you agree that Silverback North York MMA may contact you by text, phone and email about your membership. See our <a href="privacy.html">privacy notice</a>.</p>`);
   }
   function valid2() {
@@ -118,58 +125,50 @@
     S.errs = e; return !Object.keys(e).length;
   }
 
-  /* ---------------- step 3: sign ---------------- */
+  /* ---------------- step 3: review, then hand off to the CRM's secure checkout ---------------- */
   function draw3() {
     const k = kids(), minor = !k && age(S.dob) != null && age(S.dob) < 18;
-    set(`${bar(3)}${back(2, "Edit details")}<h3>Sign your waiver and agreement</h3>
-      <p class="sub">${k ? `As ${esc(S.cn)}'s parent or guardian, you sign for them.` : minor ? "You're under 18, so a parent or guardian also signs before your first class." : "Two quick signatures and you're almost done."}</p>
-      <div class="docs"><div class="doc"><span class="doc-ic" aria-hidden="true">✎</span><span><b>${k ? "Parent/Guardian Participation Waiver" : "Participation Waiver"}</b><small>Covers training and the risks of martial arts</small></span></div>
-        <div class="doc"><span class="doc-ic" aria-hidden="true">✎</span><span><b>${esc(agreementName())}</b><small>${esc(plan().name)} · ${P.money(price())} + tax ${every()}</small></span></div></div>
-      <div class="jterms"><b>Key terms</b>${keyTerms()}</div>
-      ${field("sig", "Type your full name to sign", "text", 'autocomplete="name"')}
-      <div class="optlist" style="margin-top:12px">${optRow("agree", "1", S.agree, k ? `I'm ${esc(S.cn)}'s parent or legal guardian, and I've read and agree to the waiver and the membership agreement.` : "I've read and agree to the waiver and the membership agreement.")}</div>
-      ${errBox()}<button class="btn btn-red btn-lg btn-block" data-act="go" data-v="4">Sign and continue</button>`);
-  }
-  function valid3() {
-    S.errs = {}; S.err = "";
-    const want = (S.fn + " " + S.ln).trim().toLowerCase().replace(/\s+/g, " ");
-    if (S.sig.trim().toLowerCase().replace(/\s+/g, " ") !== want) S.errs.sig = `Type your full name exactly: ${S.fn.trim()} ${S.ln.trim()}`;
-    if (!S.agree) S.err = "Please tick the box to agree to the waiver and agreement.";
-    return !S.errs.sig && !S.err;
-  }
-
-  /* ---------------- step 4: payment ---------------- */
-  function draw4() {
-    set(`${bar(4)}${back(3, "Back")}<h3>Payment</h3><p class="sub">Your card is saved securely with Square for automatic payments. Silverback never sees your card number.</p>
+    set(`${bar(3)}${back(2, "Edit details")}<h3>Review and continue</h3>
+      <p class="sub">${k ? `As ${esc(S.cn)}'s parent or guardian, you'll sign for them next.` : minor ? "You're under 18, so a parent or guardian also signs before your first class." : "One more step and you're set."}</p>
       ${summary()}
-      <div class="cardbox" role="note">${LOCK}<div><b>Secure card form</b><span>${MOCK ? "In the live version, Square's secure card form appears here." : "Square's secure card form loads here."}</span>${MOCK ? "<em>Demo: no card is collected and nothing is charged.</em>" : ""}</div></div>
-      <div class="optlist">${optRow("billing", "1", S.billing, `I agree to automatic payments of ${P.money(price())} plus tax ${every()} under my membership agreement.`)}</div>
-      ${errBox()}<button class="btn btn-red btn-lg btn-block" data-act="pay">Start my membership</button>`);
+      <div class="jterms"><b>Key terms</b>${keyTerms()}</div>
+      <div class="cardbox" role="note">${LOCK}<div><b>Next: a secure Silverback page</b><span>You'll sign the participation waiver and membership agreement, then enter your card with Square. This site never sees your card number.</span></div></div>
+      ${errBox()}<button class="btn btn-red btn-lg btn-block" data-act="pay">Continue to secure checkout</button>`);
+  }
+  function fallback(reason) {
+    const msg = "Hi! I'd like to join Silverback (" + plan().name + ", " + terms().filter((t) => t[0] === S.term)[0][1] + ").";
+    const tel = digits(CFG.phone), sms = "sms:" + tel + (/iPhone|iPad|iPod/.test(navigator.userAgent) ? "&" : "?") + "body=" + encodeURIComponent(msg);
+    const wa = "https://wa.me/" + (CFG.whatsapp || tel) + "?text=" + encodeURIComponent(msg);
+    set(`${bar(3)}${back(2, "Edit details")}<h3>We couldn't reach the sign-up page</h3>
+      <p class="sub">${esc(reason || "Please try again in a moment, or reach us directly and we'll get you set up.")}</p>
+      <div class="row" style="margin-top:8px"><button class="btn btn-red btn-lg btn-block" data-act="pay">Try again</button></div>
+      <div class="row" style="margin-top:8px"><a class="btn btn-ghost" href="${sms}" data-track="sms_fallback">Text us</a>
+        <a class="btn btn-ghost" href="${wa}" target="_blank" rel="noopener" data-track="wa_fallback">Message on WhatsApp</a>
+        <a class="btn btn-ghost" href="tel:${esc(CFG.phone)}" data-track="call_fallback">Call ${esc(CFG.phoneDisplay)}</a></div>`);
   }
   async function pay() {
     if (S.busy) return;
-    S.err = ""; if (!S.billing) { S.err = "Please tick the box to agree to automatic payments."; draw4(); return; }
-    S.busy = true; const b = $('[data-act="pay"]', body); if (b) { b.disabled = true; b.innerHTML = '<span class="spin"></span>Starting your membership…'; }
-    await new Promise((r) => setTimeout(r, 900));
-    S.busy = false; S.step = 5; track("join_complete"); draw5();
+    S.busy = true; S.err = ""; const b = $('[data-act="pay"]', body); if (b) { b.disabled = true; b.innerHTML = '<span class="spin"></span>Getting your secure page ready…'; }
+    if (demo()) {
+      await new Promise((r) => setTimeout(r, 700)); S.busy = false; track("join_complete_demo");
+      set(`<div class="done"><div class="check" aria-hidden="true">${CHECK}</div><h3>Demo mode</h3>${summary()}
+        <p class="sub" style="margin-top:10px">In the live version, you'd now be sent to a secure Silverback page to sign the waiver, sign the membership agreement and enter your card with Square. Nothing was sent and nothing was charged.</p></div>`);
+      return;
+    }
+    try {
+      const token = await B.tokenForSubmit();
+      const [st, d] = await B.api("POST", "/api/public/membership", {
+        token, first_name: S.fn, last_name: S.ln, email: S.em, phone: S.ph, company_website: S.hp,
+        plan_key: S.plan, term: S.term, freq: S.freq, landing_page: location.href.slice(0, 400),
+      });
+      if (st === 200 && d && d.ok && d.url) { track("join_redirect"); location.href = d.url; return; }
+      S.busy = false; fallback((d && d.error) || "Please try again, or reach us directly.");
+    } catch (e) {
+      S.busy = false; fallback("We couldn't reach the sign-up system.");
+    }
   }
 
-  /* ---------------- done ---------------- */
-  function draw5() {
-    const k = kids();
-    set(`<div class="done"><div class="check" aria-hidden="true">${CHECK}</div>
-      <h3>Welcome to Silverback, ${esc(S.fn)}!</h3>
-      ${summary()}
-      <p class="sub" style="margin-top:10px">${MOCK ? "Demo mode: this is exactly what new members see. No membership was created and nothing was charged." : `Your receipt is on its way to ${esc(S.em)}.`}</p>
-      <div class="next"><b>What happens next</b><ol>
-        <li>Square emails a receipt to ${esc(S.em)} for each payment.</li>
-        <li>${k ? `Book ${esc(S.cn)}'s first class` : "Book your first class"} below, or just show up to any class on the schedule.</li>
-        <li>Come in through the back door at 44 Prince Andrew Pl. We'll take it from there.</li></ol></div>
-      <div class="row"><button type="button" class="btn btn-red btn-lg" data-act="first">${k ? "Book their first class" : "Book my first class"}</button>
-        <a class="btn btn-ghost" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent("44 Prince Andrew Pl, North York, ON M3C 2H4")}" target="_blank" rel="noopener">Get directions</a></div></div>`);
-  }
-
-  function render() { [null, draw1, draw2, draw3, draw4, draw5][S.step](); }
+  function render() { [null, draw1, draw2, draw3][S.step](); }
 
   /* ---------------- events ---------------- */
   overlay.addEventListener("input", (e) => {
@@ -187,30 +186,22 @@
     if (a === "plan") { S.plan = v; draw1(); }
     else if (a === "term") { S.term = v; draw1(); }
     else if (a === "freq") { S.freq = v; track("join_freq_" + v); draw1(); }
-    else if (a === "agree") { S.agree = t.checked; }
-    else if (a === "billing") { S.billing = t.checked; }
     else if (a === "back") { S.step = +v; S.err = ""; S.errs = {}; render(); }
     else if (a === "go") {
       const to = +v; S.err = "";
       if (to === 2) track("join_plan_" + S.plan + "_" + S.term + "_" + S.freq);
       if (to === 3 && !valid2()) { draw2(); const b = $(".fld.bad input", body); if (b) b.focus(); return; }
       if (to === 3) track("join_details");
-      if (to === 4 && !valid3()) { draw3(); return; }
       S.step = to; render();
     }
     else if (a === "pay") pay();
-    else if (a === "first") {
-      hide();
-      if (window.sbOpenBooking) window.sbOpenBooking("book", kids() ? { who: "CHILD", name: "Kids" } : { who: "ADULT" });
-    }
   });
 
   function open(key) {
     const cur = P.current();
     if (P.plan(key)) S.plan = key;
     S.term = cur.term; S.freq = cur.freq;
-    if (S.step === 5) Object.assign(S, { agree: false, billing: false, sig: "" }); // a finished sign-up starts over, keeping typed contact details
-    S.step = 1; S.err = ""; S.errs = {};
+    S.step = 1; S.err = ""; S.errs = {}; S.busy = false;
     document.querySelectorAll(".modal-overlay.open").forEach((o) => { if (o !== overlay) o.classList.remove("open"); });
     render(); show(); track("join_open");
   }

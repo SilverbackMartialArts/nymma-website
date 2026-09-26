@@ -483,6 +483,7 @@
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
 
-  // Shared with schedule.js so the calendar and the booking form use the same cached class list and don't double-poll the CRM.
-  window.sbBooking = { loadClasses, api, base };
+  // Shared with schedule.js (cached class list) and join.js (api/tokenForSubmit/demo), so nothing double-polls the CRM
+  // and every public form uses the same anti-bot token and demo-mode fallback.
+  window.sbBooking = { loadClasses, api, base, tokenForSubmit, demo };
 })();
