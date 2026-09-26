@@ -134,6 +134,10 @@
   }
 
   /* ---------------- step 3: review, then hand off to the CRM's secure checkout ---------------- */
+  // The sign-up link is requested the moment this screen is shown - not when they click the button - so that
+  // (a) clicking through is instant, and (b) if they read this far and then leave without clicking anything,
+  // the CRM already has a real link for them and can nudge them with it a few minutes later, same as an
+  // abandoned booking. Nothing is charged by requesting this link; nothing happens until they finish it.
   function draw3() {
     const k = kids(), minor = !k && age(S.dob) != null && age(S.dob) < 18;
     set(`${bar(3)}${back(2, "Edit details")}<h3>Review and continue</h3>
@@ -142,6 +146,21 @@
       <div class="jterms"><b>Key terms</b>${keyTerms()}</div>
       <div class="cardbox" role="note">${LOCK}<div><b>Next: a secure Silverback page</b><span>You'll sign the participation waiver and membership agreement, then enter your card with Square. This site never sees your card number.</span></div></div>
       ${errBox()}<button class="btn btn-red btn-lg btn-block" data-act="pay">Continue to secure checkout</button>`);
+    startCheckout();
+  }
+  function startCheckout() {
+    if (demo() || S.checkoutPromise) return;
+    S.checkoutUrl = null; S.checkoutError = null;
+    S.checkoutPromise = (async () => {
+      const token = await B.tokenForSubmit();
+      const [st, d] = await B.api("POST", "/api/public/membership", {
+        token, first_name: S.fn, last_name: S.ln, email: S.em, phone: S.ph, company_website: S.hp, dob: S.dob,
+        address: S.ad, emergency_name: S.en, emergency_phone: S.ep, emergency_relationship: S.er, medical_conditions: S.mc,
+        plan_key: S.plan, term: S.term, freq: S.freq, landing_page: location.href.slice(0, 400), consent: true,
+      });
+      if (st === 200 && d && d.ok && d.url) { S.checkoutUrl = d.url; return d.url; }
+      S.checkoutError = (d && d.error) || "Please try again, or reach us directly."; S.checkoutPromise = null; return null;
+    })().catch(() => { S.checkoutError = "We couldn't reach the sign-up system."; S.checkoutPromise = null; return null; });
   }
   function fallback(reason) {
     const msg = "Hi! I'd like to join Silverback (" + plan().name + ", " + terms().filter((t) => t[0] === S.term)[0][1] + ").";
@@ -163,18 +182,12 @@
         <p class="sub" style="margin-top:10px">In the live version, you'd now be sent to a secure Silverback page to sign the waiver, sign the membership agreement and enter your card with Square. Nothing was sent and nothing was charged.</p></div>`);
       return;
     }
-    try {
-      const token = await B.tokenForSubmit();
-      const [st, d] = await B.api("POST", "/api/public/membership", {
-        token, first_name: S.fn, last_name: S.ln, email: S.em, phone: S.ph, company_website: S.hp, dob: S.dob,
-        address: S.ad, emergency_name: S.en, emergency_phone: S.ep, emergency_relationship: S.er, medical_conditions: S.mc,
-        plan_key: S.plan, term: S.term, freq: S.freq, landing_page: location.href.slice(0, 400), consent: true,
-      });
-      if (st === 200 && d && d.ok && d.url) { track("join_redirect"); location.href = d.url; return; }
-      S.busy = false; fallback((d && d.error) || "Please try again, or reach us directly.");
-    } catch (e) {
-      S.busy = false; fallback("We couldn't reach the sign-up system.");
-    }
+    // Usually already fetched the moment this screen appeared (see startCheckout), so this just retries a
+    // failed attempt or waits the last moment for a slow connection - either way, no data is sent twice.
+    startCheckout();
+    const url = await S.checkoutPromise;
+    if (url) { track("join_redirect"); location.href = url; return; }
+    S.busy = false; fallback(S.checkoutError);
   }
 
   function render() { [null, draw1, draw2, draw3][S.step](); }
@@ -195,7 +208,7 @@
     if (a === "plan") { S.plan = v; draw1(); }
     else if (a === "term") { S.term = v; draw1(); }
     else if (a === "freq") { S.freq = v; track("join_freq_" + v); draw1(); }
-    else if (a === "back") { S.step = +v; S.err = ""; S.errs = {}; render(); }
+    else if (a === "back") { S.step = +v; S.err = ""; S.errs = {}; S.checkoutUrl = S.checkoutError = S.checkoutPromise = null; render(); }
     else if (a === "go") {
       const to = +v; S.err = "";
       if (to === 2) track("join_plan_" + S.plan + "_" + S.term + "_" + S.freq);
@@ -210,7 +223,7 @@
     const cur = P.current();
     if (P.plan(key)) S.plan = key;
     S.term = cur.term; S.freq = cur.freq;
-    S.step = 1; S.err = ""; S.errs = {}; S.busy = false;
+    S.step = 1; S.err = ""; S.errs = {}; S.busy = false; S.checkoutUrl = S.checkoutError = S.checkoutPromise = null;
     document.querySelectorAll(".modal-overlay.open").forEach((o) => { if (o !== overlay) o.classList.remove("open"); });
     render(); show(); track("join_open");
   }
