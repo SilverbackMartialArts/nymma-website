@@ -17,8 +17,8 @@ window.SILVERBACK = {
   // Membership prices BEFORE tax, per month. The pricing section and the online join portal both read these.
   // Keep them matching the CRM plans. For kids, "3m" is the "3 months or longer" price (12m is the same).
   plans: [
-    { key: "kickboxing", name: "Kickboxing",   includes: "Kickboxing + MMA classes",                          mtm: 179, "3m": 169, "12m": 149 },
-    { key: "allaccess",  name: "All Access",   includes: "Every adult class: kickboxing, NoGi jiu-jitsu, wrestling & MMA", mtm: 210, "3m": 199, "12m": 176, promo: { "3m": 176 } },
+    { key: "kickboxing", name: "Kickboxing",   includes: "Kickboxing + MMA classes",                          mtm: 169, "3m": 169, "12m": 149 },
+    { key: "allaccess",  name: "All Access",   includes: "Every adult class: kickboxing, NoGi jiu-jitsu, wrestling & MMA", mtm: 176, "3m": 199, "12m": 176, promo: { "3m": 176 } },
     { key: "grappling",  name: "Grappling",    includes: "NoGi jiu-jitsu, wrestling & MMA",                   mtm: 189, "3m": 179, "12m": 159 },
     { key: "kids",       name: "Kids program", includes: "Ages 4 to 12: kids jiu-jitsu & kickboxing",         mtm: 150, "3m": 130, "12m": 130, kids: true }
   ],

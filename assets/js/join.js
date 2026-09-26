@@ -68,7 +68,7 @@
     return `<div class="sum jsum"><b>${esc(p.name)}</b>
       <span>${esc(terms().filter((t) => t[0] === S.term)[0][1])}${promo ? ' · <em class="tagline">Limited-time price</em>' : ""}</span>
       <span class="jprice"><strong>${P.money(pay)}</strong> + tax ${every()}</span>
-      <span>About ${P.money(P.tax(pay))} per payment with ${+CFG.taxPercent || 0}% HST · No registration fee</span></div>`;
+      <span>${P.money(P.tax(pay))} per payment, tax included · No registration fee</span></div>`;
   }
   function keyTerms() {
     const n = months(), pay = P.money(price());
@@ -158,7 +158,7 @@
     try {
       const token = await B.tokenForSubmit();
       const [st, d] = await B.api("POST", "/api/public/membership", {
-        token, first_name: S.fn, last_name: S.ln, email: S.em, phone: S.ph, company_website: S.hp,
+        token, first_name: S.fn, last_name: S.ln, email: S.em, phone: S.ph, company_website: S.hp, dob: S.dob,
         plan_key: S.plan, term: S.term, freq: S.freq, landing_page: location.href.slice(0, 400), consent: true,
       });
       if (st === 200 && d && d.ok && d.url) { track("join_redirect"); location.href = d.url; return; }
