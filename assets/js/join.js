@@ -28,7 +28,8 @@
   const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
   const LOCK = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
 
-  const S = { step: 1, plan: "allaccess", term: "3m", freq: "month", fn: "", ln: "", em: "", ph: "", dob: "", cn: "", cdob: "", hp: "", errs: {}, err: "", busy: false };
+  const S = { step: 1, plan: "allaccess", term: "3m", freq: "month", fn: "", ln: "", em: "", ph: "", dob: "", cn: "", cdob: "",
+              ad: "", en: "", ep: "", er: "", mc: "", hp: "", errs: {}, err: "", busy: false };
   const plan = () => P.plan(S.plan) || P.plans[0];
   const kids = () => !!plan().kids;
   const terms = () => (kids() ? [["mtm", "Month-to-month"], ["3m", "3 months or longer"]] : [["mtm", "Month-to-month"], ["3m", "3-month commitment"], ["12m", "12-month commitment"]]);
@@ -105,6 +106,10 @@
       <div class="fgrid">${field("fn", "First name", "text", 'autocomplete="given-name"')}${field("ln", "Last name", "text", 'autocomplete="family-name"')}
         ${field("em", "Email", "email", 'autocomplete="email" inputmode="email"')}${field("ph", "Mobile phone", "tel", 'autocomplete="tel" inputmode="tel"')}</div>
       <div class="fgrid" style="margin-top:10px">${k ? field("cn", "Child's first name", "text") + field("cdob", "Child's date of birth", "date") : field("dob", "Date of birth", "date", 'autocomplete="bday"')}</div>
+      <div class="fgrid" style="margin-top:10px">${field("ad", "Home address", "text", 'autocomplete="street-address"')}</div>
+      <span class="lab" style="margin-top:10px">Emergency contact</span>
+      <div class="fgrid">${field("en", "Their name", "text")}${field("ep", "Their phone", "tel", 'autocomplete="tel" inputmode="tel"')}</div>
+      <div class="fgrid" style="margin-top:10px">${field("er", "Their relationship to you (optional)", "text", 'placeholder="e.g. spouse, parent, friend"')}${field("mc", "Medical conditions (leave blank if none)", "text")}</div>
       ${hpf()}${errBox()}<button class="btn btn-red btn-lg btn-block" data-act="go" data-v="3">Continue</button>
       <p class="note">By continuing, you agree that Silverback North York MMA may contact you by text, phone and email about your membership. See our <a href="privacy.html">privacy notice</a>.</p>`);
   }
@@ -114,6 +119,9 @@
     if (!S.ln.trim()) e.ln = "Enter your last name";
     if (!isEmail(S.em.trim())) e.em = "Enter a valid email";
     if (digits(S.ph).length < 10) e.ph = "Enter a phone number with area code";
+    if (!S.ad.trim()) e.ad = "Enter your home address";
+    if (!S.en.trim()) e.en = "Enter an emergency contact name";
+    if (digits(S.ep).length < 10) e.ep = "Enter their phone number with area code";
     if (kids()) {
       if (!S.cn.trim()) e.cn = "Enter your child's first name";
       const a = age(S.cdob);
@@ -159,6 +167,7 @@
       const token = await B.tokenForSubmit();
       const [st, d] = await B.api("POST", "/api/public/membership", {
         token, first_name: S.fn, last_name: S.ln, email: S.em, phone: S.ph, company_website: S.hp, dob: S.dob,
+        address: S.ad, emergency_name: S.en, emergency_phone: S.ep, emergency_relationship: S.er, medical_conditions: S.mc,
         plan_key: S.plan, term: S.term, freq: S.freq, landing_page: location.href.slice(0, 400), consent: true,
       });
       if (st === 200 && d && d.ok && d.url) { track("join_redirect"); location.href = d.url; return; }
