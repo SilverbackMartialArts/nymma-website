@@ -159,7 +159,7 @@
       const token = await B.tokenForSubmit();
       const [st, d] = await B.api("POST", "/api/public/membership", {
         token, first_name: S.fn, last_name: S.ln, email: S.em, phone: S.ph, company_website: S.hp,
-        plan_key: S.plan, term: S.term, freq: S.freq, landing_page: location.href.slice(0, 400),
+        plan_key: S.plan, term: S.term, freq: S.freq, landing_page: location.href.slice(0, 400), consent: true,
       });
       if (st === 200 && d && d.ok && d.url) { track("join_redirect"); location.href = d.url; return; }
       S.busy = false; fallback((d && d.error) || "Please try again, or reach us directly.");
