@@ -385,7 +385,7 @@
             var past = c._start.getTime() <= now, full = c.state === "FULL", notBookable = c.bookable === false;
             var tag = full ? '<em class="x">Full</em>' : isKids(c) ? '<em class="x">Kids 4 to 12</em>' : (c.level === "experienced" || isAdvanced(c.name)) ? '<em class="x">Experienced</em>' : (c.level === "beginner" || isBeginner(c.name)) ? "<em>Beginner friendly</em>" : "<em>All levels</em>";
             var inner = "<span>" + esc(c.time_label) + "</span><b>" + esc(c.name) + "</b>" + tag;
-            return past || full || notBookable ? '<div class="wcls ' + kind(c) + (past ? " past" : "") + '">' + inner + (notBookable && !past ? '<em class="x">Drop in to join</em>' : "") + "</div>"
+            return past || full || notBookable ? '<div class="wcls ' + kind(c) + (past ? " past" : "") + '">' + inner + (notBookable && !past ? '<em class="x">Instructor permission required</em>' : "") + "</div>"
               : '<a class="wcls ' + kind(c) + '" ' + bookAttrs(c) + ' data-track="cta_week" title="Book ' + esc(c.name) + ' as your free trial">' + inner + "</a>";
           }).join("") : '<div class="wcls past" style="border-left-color:var(--line)"><b style="font-weight:500;color:var(--muted)">No classes</b></div>') + "</div>");
       }

@@ -137,7 +137,7 @@
         <span class="cc-time">${esc(c.time_label)}${c.end_label ? " – " + esc(c.end_label) : ""}</span>
         <b>${esc(c.name)}</b>${c.coach ? `<span class="cc-meta">Coach: ${esc(c.coach)}</span>` : ""}
         <span class="cc-row">${badges.join("")}</span>
-        ${canBook ? `<a class="btn btn-ghost btn-sm" href="#book" data-book-class="${esc(c.name)}" data-book-who="${c.audience === "KIDS" ? "CHILD" : "ADULT"}" data-book-date="${esc(c.date_key)}" data-track="cta_calendar">Book this class as my free trial</a>` : c.bookable === false ? `<span class="cc-meta">Not bookable online — drop in to join.</span>` : ""}
+        ${canBook ? `<a class="btn btn-ghost btn-sm" href="#book" data-book-class="${esc(c.name)}" data-book-who="${c.audience === "KIDS" ? "CHILD" : "ADULT"}" data-book-date="${esc(c.date_key)}" data-track="cta_calendar">Book this class as my free trial</a>` : c.bookable === false ? `<span class="cc-meta">Not bookable online — instructor permission required.</span>` : ""}
       </div>`;
     }).join("");
     return `<div class="cal-list"><h4>${esc(label)}</h4><p class="sub">Tap a class to book it as your free trial.</p><div class="cal-cards">${cards}</div></div>`;
