@@ -36,7 +36,10 @@ window.SILVERBACK = {
   email: "info@nymma.ca",
 
   // Optional tracking. Leave blank to load no tracking scripts at all.
-  ga4Id: "",          // e.g. "G-XXXXXXXXXX"
+  // ga4Id is the SAME Google Analytics 4 property already used on nymma.ca (GoDaddy site) - reusing it
+  // (instead of creating a new property) keeps your historical traffic data in one continuous timeline
+  // across the site switch, rather than starting over at zero.
+  ga4Id: "G-7L91M691GF",
   metaPixelId: "",    // e.g. "123456789012345"
 
   // Social links (shown in the footer and community section only if filled in).
@@ -85,6 +88,8 @@ window.SILVERBACK = {
     { day: "Saturday",  time: "12:30 PM", name: "Jiu-Jitsu",                group: "adult", program: "grappling", level: "all" },
 
     { day: "Sunday",    time: "11:00 AM", name: "Kids Martial Arts",        group: "kids",  program: "kids",      level: "beginner" },
-    { day: "Sunday",    time: "12:00 PM", name: "Kickboxing",               group: "adult", program: "striking",  level: "beginner" }
+    { day: "Sunday",    time: "12:00 PM", name: "Kickboxing",               group: "adult", program: "striking",  level: "beginner" },
+    // Shown on the schedule for information only - not a bookable free trial (see bookable: false below).
+    { day: "Sunday",    time: "1:00 PM",  name: "Sparring",                 group: "adult", program: "sparring",  level: "experienced", bookable: false }
   ]
 };

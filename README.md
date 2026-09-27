@@ -23,9 +23,9 @@ It never talks to your live CRM (`crmBase` is empty) and nothing in the CRM was 
 | **Programs** | Kickboxing, NoGi Jiu-Jitsu, Wrestling, MMA with real photos and class times. |
 | **Never trained?** | Answers the 4 things beginners worry about. |
 | **Your first class** | What happens start to finish, and what to bring. |
-| **Schedule** | "Next 7 days" view (default) plus the month calendar. Every class is bookable. |
+| **Schedule** | "Next 7 days" view (default) plus the month calendar. Every class is bookable except Sunday Sparring, which is shown for information only (`bookable: false` in `config.js`). |
 | **Kids** | A parent-focused section: ages 4 to 12, both kids classes, price. |
-| **Coaches** | John (big card with photo and titles), plus Mario, Alan, Ariel and Jacob. |
+| **Coaches** | John (big card with photo and titles), plus Mario, Allan Mousa, Ariel and Jacob. |
 | **More than a gym** | Your real photos: belt promotions, fight nights, team nights out. |
 | **Reviews** | Your Google rating (4.9 from 60 reviews) with a link to your Google listing, plus any review quotes you add (see below). The rating also shows under the hero buttons and in the proof strip. |
 | **Pricing** | Commitment switch (month-to-month / 3 / 12 months) and a **Pay monthly / Pay every 2 weeks** switch. Each card has "Try free first" and **Join online**. Prices match the CRM plans and the sales knowledge base. |
@@ -46,7 +46,7 @@ Nothing is made up: no invented reviews, results, prices or promotions. Coach bi
      { name: "Alex R.", text: "Paste the review here.", program: "Kickboxing", rating: 5 }
    ],
    ```
-3. **Photos of Mario, Alan, Ariel and Jacob.** They show initials for now.
+3. **Photos of Mario, Allan Mousa, Ariel and Jacob.** They show initials for now.
 4. **A kids class photo.** The kids section uses a designed card because none of the current photos show a kids class.
 
 ## Settings you edit day to day: `assets/js/config.js`

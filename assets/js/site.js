@@ -231,7 +231,7 @@
   var isKids = function (c) { return c.audience === "KIDS" || /kids/i.test(c.name); };
   var isBeginner = function (name) { return (CFG.beginnerFriendly || ["Fundamentals", "Kickboxing", "Kids"]).some(function (k) { return String(name).toLowerCase().indexOf(k.toLowerCase()) >= 0; }); };
   var isAdvanced = function (name) { return /advanced/i.test(name); };
-  function kind(c) { var p = String((c.program || "") + " " + c.name).toLowerCase(); if (isKids(c)) return "kids"; if (/kick|strik/.test(p)) return "striking"; if (/mma/.test(p)) return "mma"; return "grappling"; }
+  function kind(c) { var p = String((c.program || "") + " " + c.name).toLowerCase(); if (isKids(c)) return "kids"; if (/kick|strik|spar/.test(p)) return "striking"; if (/mma/.test(p)) return "mma"; return "grappling"; }
 
   // Next N days of classes from the weekly timetable in config.js, in the same shape the CRM returns.
   function projected(days) {
@@ -243,7 +243,7 @@
         var m = minsOf(c.time); if (m == null) return;
         var st = new Date(d.getFullYear(), d.getMonth(), d.getDate(), Math.floor(m / 60), m % 60);
         out.push({ id: "p" + dateKey(d) + idx, name: c.name, program: c.program, audience: c.group === "kids" ? "KIDS" : "ADULT", state: "OPEN",
-          date_key: dateKey(d), time_label: c.time, starts_at: st.toISOString(), _start: st, projected: true });
+          date_key: dateKey(d), time_label: c.time, starts_at: st.toISOString(), _start: st, projected: true, bookable: c.bookable !== false, level: c.level || null });
       });
     }
     return out.sort(function (a, b) { return a._start - b._start; });
@@ -278,11 +278,11 @@
   function levelTag(c) {
     if (c.state === "FULL") return '<span class="x">Full</span>';
     if (isKids(c)) return '<span class="k">Kids 4 to 12</span>';
-    if (isAdvanced(c.name)) return '<span class="x">Experienced</span>';
-    if (isBeginner(c.name)) return "<span>Beginner friendly</span>";
+    if (c.level === "experienced" || isAdvanced(c.name)) return '<span class="x">Experienced</span>';
+    if (c.level === "beginner" || isBeginner(c.name)) return "<span>Beginner friendly</span>";
     return "<span>All levels</span>";
   }
-  var upcoming = function (list) { var now = Date.now(); return list.filter(function (c) { return c._start.getTime() > now && c.state !== "FULL"; }); };
+  var upcoming = function (list) { var now = Date.now(); return list.filter(function (c) { return c._start.getTime() > now && c.state !== "FULL" && c.bookable !== false; }); };
 
   /* ---------- hero: the next few classes ---------- */
   var upEl = $("#upNext"), kidsPage = qs.get("for") === "kids";
@@ -334,7 +334,7 @@
       { id: "kbully", label: "Anti-bullying", title: "Kids Martial Arts", book: "Kids Martial Arts", match: /kids martial arts/i,
         why: "Self-defence and bully-proofing through jiu-jitsu, the martial art built on control instead of striking." },
       { id: "kfocus", label: "Focus & discipline", title: "Kids Martial Arts", book: "Kids Martial Arts", match: /kids martial arts/i,
-        why: "Structured classes with clear expectations, led by Coach Alan, our kids coach." },
+        why: "Structured classes with clear expectations, led by Coach Allan Mousa, our kids coach." },
       { id: "kenergy", label: "Burn off energy", title: "Kids Martial Arts", book: "Kids Martial Arts", match: /kids martial arts/i,
         why: "High-energy classes with pad work, drills and jiu-jitsu, Monday, Friday at 5 PM and Sunday at 11 AM." }
     ]
@@ -382,10 +382,10 @@
         var head = i === 0 ? "Today" : i === 1 ? "Tomorrow" : d.toLocaleDateString("en-US", { weekday: "long" });
         out.push('<div class="wday' + (i === 0 ? " today" : "") + '"><h4>' + head + "<small>" + d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) + "</small></h4>" +
           (day.length ? day.map(function (c) {
-            var past = c._start.getTime() <= now, full = c.state === "FULL";
-            var tag = full ? '<em class="x">Full</em>' : isKids(c) ? '<em class="x">Kids 4 to 12</em>' : isAdvanced(c.name) ? '<em class="x">Experienced</em>' : isBeginner(c.name) ? "<em>Beginner friendly</em>" : "";
+            var past = c._start.getTime() <= now, full = c.state === "FULL", notBookable = c.bookable === false;
+            var tag = full ? '<em class="x">Full</em>' : isKids(c) ? '<em class="x">Kids 4 to 12</em>' : (c.level === "experienced" || isAdvanced(c.name)) ? '<em class="x">Experienced</em>' : (c.level === "beginner" || isBeginner(c.name)) ? "<em>Beginner friendly</em>" : "<em>All levels</em>";
             var inner = "<span>" + esc(c.time_label) + "</span><b>" + esc(c.name) + "</b>" + tag;
-            return past || full ? '<div class="wcls ' + kind(c) + (past ? " past" : "") + '">' + inner + "</div>"
+            return past || full || notBookable ? '<div class="wcls ' + kind(c) + (past ? " past" : "") + '">' + inner + (notBookable && !past ? '<em class="x">Drop in to join</em>' : "") + "</div>"
               : '<a class="wcls ' + kind(c) + '" ' + bookAttrs(c) + ' data-track="cta_week" title="Book ' + esc(c.name) + ' as your free trial">' + inner + "</a>";
           }).join("") : '<div class="wcls past" style="border-left-color:var(--line)"><b style="font-weight:500;color:var(--muted)">No classes</b></div>') + "</div>");
       }

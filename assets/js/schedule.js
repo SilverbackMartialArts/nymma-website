@@ -20,9 +20,10 @@
   const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
   const beginner = (name) => (CFG.beginnerFriendly || ["Fundamentals", "Kickboxing", "Kids"]).some((k) => String(name).toLowerCase().includes(k.toLowerCase()));
+  const advanced = (name) => /advanced/i.test(String(name || ""));
   function badgeClass(programOrGroup) {
     const p = String(programOrGroup || "").toLowerCase();
-    if (p.includes("kick") || p.includes("strik")) return "striking";
+    if (p.includes("kick") || p.includes("strik") || p.includes("spar")) return "striking";
     if (p.includes("mma")) return "mma";
     return "grappling";
   }
@@ -53,7 +54,7 @@
           id: `p-${dateKey(d)}-${idx}`, name: c.name, program: c.program, coach: null, state: "OPEN",
           audience: c.group === "kids" ? "KIDS" : "ADULT", end_label: "", spots_left: null,
           date_key: dateKey(d), date_label: `${dow}, ${d.toLocaleDateString("en-US", { month: "short" })} ${d.getDate()}`,
-          time_label: c.time, projected: true
+          time_label: c.time, projected: true, bookable: c.bookable !== false, level: c.level || null
         });
       });
     }
@@ -127,15 +128,16 @@
     const cards = list.map((c) => {
       const badges = [`<span class="cal-badge ${badgeClass(c.program || c.name)}">${esc(c.program || "Class")}</span>`];
       if (c.audience === "KIDS") badges.push('<span class="cal-badge kids">Kids</span>');
+      badges.push(c.level === "experienced" || advanced(c.name) ? '<span class="tag">Experienced</span>' : c.level === "beginner" || beginner(c.name) ? '<span class="tag g">Beginner friendly</span>' : '<span class="tag">All levels</span>');
       if (c.state === "FULL") badges.push('<span class="tag">Full</span>');
       else if (c.state === "WAITLIST") badges.push('<span class="tag w">Waitlist</span>');
       else if (c.spots_left != null && c.spots_left <= 5) badges.push(`<span class="tag r">${c.spots_left} spots left</span>`);
-      else if (beginner(c.name)) badges.push('<span class="tag g">Beginner friendly</span>');
+      const canBook = c.state !== "FULL" && c.bookable !== false;
       return `<div class="cal-card">
         <span class="cc-time">${esc(c.time_label)}${c.end_label ? " – " + esc(c.end_label) : ""}</span>
         <b>${esc(c.name)}</b>${c.coach ? `<span class="cc-meta">Coach: ${esc(c.coach)}</span>` : ""}
         <span class="cc-row">${badges.join("")}</span>
-        ${c.state === "FULL" ? "" : `<a class="btn btn-ghost btn-sm" href="#book" data-book-class="${esc(c.name)}" data-book-who="${c.audience === "KIDS" ? "CHILD" : "ADULT"}" data-book-date="${esc(c.date_key)}" data-track="cta_calendar">Book this class as my free trial</a>`}
+        ${canBook ? `<a class="btn btn-ghost btn-sm" href="#book" data-book-class="${esc(c.name)}" data-book-who="${c.audience === "KIDS" ? "CHILD" : "ADULT"}" data-book-date="${esc(c.date_key)}" data-track="cta_calendar">Book this class as my free trial</a>` : c.bookable === false ? `<span class="cc-meta">Not bookable online — drop in to join.</span>` : ""}
       </div>`;
     }).join("");
     return `<div class="cal-list"><h4>${esc(label)}</h4><p class="sub">Tap a class to book it as your free trial.</p><div class="cal-cards">${cards}</div></div>`;
