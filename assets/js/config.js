@@ -17,13 +17,13 @@ window.SILVERBACK = {
   // Membership prices BEFORE tax, per month. The pricing section and the online join portal both read these.
   // Keep them matching the CRM plans. For kids, "3m" is the "3 months or longer" price (12m is the same).
   plans: [
-    { key: "kickboxing", name: "Kickboxing",   includes: "Kickboxing + MMA classes",                          mtm: 169, "3m": 169, "12m": 149 },
-    { key: "allaccess",  name: "All Access",   includes: "Every adult class: kickboxing, NoGi jiu-jitsu, wrestling & MMA", mtm: 176, "3m": 199, "12m": 176, promo: { "3m": 176 } },
+    { key: "kickboxing", name: "Kickboxing",   includes: "Kickboxing + MMA classes",                          mtm: 179, "3m": 169, "12m": 149 },
+    { key: "allaccess",  name: "All Access",   includes: "Every adult class: kickboxing, NoGi jiu-jitsu, wrestling & MMA", mtm: 199, "3m": 189, "12m": 169 },
     { key: "grappling",  name: "Grappling",    includes: "NoGi jiu-jitsu, wrestling & MMA",                   mtm: 189, "3m": 179, "12m": 159 },
     { key: "kids",       name: "Kids program", includes: "Ages 4 to 12: kids jiu-jitsu & kickboxing",         mtm: 150, "3m": 130, "12m": 130, kids: true }
   ],
-  // Paying every 2 weeks. "yearly" = same cost per year as paying monthly (monthly price x 12 / 26).
-  // "half" = half the monthly price. PLACEHOLDER: confirm your real bi-weekly prices before going live.
+  // Paying every 2 weeks. "yearly" = same cost per year as paying monthly (monthly price x 12 / 26, to the cent).
+  // This matches the CRM's every-2-weeks plans exactly (e.g. All Access month-to-month $199 -> $91.85 every 2 weeks).
   biweekly: "yearly",
   taxPercent: 13,   // HST, used for the "about $X with tax" line in the join portal
 
@@ -57,11 +57,10 @@ window.SILVERBACK = {
   // Example: { name: "Alex R.", text: "Paste the review here.", program: "Kickboxing", rating: 5 }
   reviews: [],
 
-  // Current promotion (must match the sales knowledge base). The banner and promo price switch off by themselves after this moment.
-  promo: {
-    ends: "2026-09-30T23:59:59-04:00",
-    label: "All Access $176/mo + tax with a 3+ month commitment"
-  },
+  // Current promotion: none running (as of 2026-10-14). To run one, set e.g.
+  //   promo: { ends: "2026-12-31T23:59:59-05:00", label: "..." }
+  // and add  promo: { "3m": 160 }  to the plan in "plans" above (it must match the sales knowledge base). It switches off by itself after "ends".
+  promo: null,
 
   // Weekly adult + kids timetable. Keep in sync with the CRM schedule.
   // level: "beginner" (great first class) | "all" | "experienced"

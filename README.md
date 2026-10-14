@@ -56,7 +56,7 @@ Nothing is made up: no invented reviews, results, prices or promotions. Coach bi
 - `plans`: membership prices per month before tax (Kickboxing, All Access, Grappling, Kids). The pricing cards and the join portal both read these.
 - `biweekly`: `"yearly"` (monthly × 12 ÷ 26) or `"half"`. `taxPercent`: 13 (HST).
 - `schedule`: the weekly timetable. The Up next card, class finder, 7-day view and program times all read from it (and switch to the CRM's live classes once `crmBase` is set).
-- `promo`: the All Access $176 offer. The yellow bar, ribbon and price switch themselves off after **Sept 30, 2026**.
+- `promo`: `null` = no promotion running (the All Access $176 offer ended Sept 30, 2026). To run one, give it an `ends` date and a `label`, and add `promo: { "3m": price }` to the plan; the yellow bar, ribbon and price switch themselves off after the end date.
 - `googleRating`, `googleReviewCount`, `reviews`, `googleReviews` (your "leave a review" link), `googleMaps` (your listing), `instagram`, `facebook`, `ga4Id`, `metaPixelId`.
 
 ## Going live (not done: the live CRM was deliberately left untouched)
