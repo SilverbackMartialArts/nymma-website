@@ -176,7 +176,8 @@
     };
     const audience = () => (S.who === "CHILD" ? "KIDS" : "ADULT");
     const kid = () => S.who !== "ADULT";
-    const visible = () => S.classes.filter((c) => c.audience === "BOTH" || c.audience === audience());
+    // Classes whose online booking has closed (30 minutes before the start) stay on the schedule but are not offered here.
+    const visible = () => S.classes.filter((c) => !c.booking_closed && (c.audience === "BOTH" || c.audience === audience()));
     const prefMatch = (c) => S.pref && String(c.name).toLowerCase().includes(S.pref.toLowerCase());
 
     function bring() { body.scrollTop = 0; }

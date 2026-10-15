@@ -282,7 +282,7 @@
     if (c.level === "beginner" || isBeginner(c.name)) return "<span>Beginner friendly</span>";
     return "<span>All levels</span>";
   }
-  var upcoming = function (list) { var now = Date.now(); return list.filter(function (c) { return c._start.getTime() > now && c.state !== "FULL" && c.bookable !== false; }); };
+  var upcoming = function (list) { var now = Date.now(); return list.filter(function (c) { return c._start.getTime() > now && c.state !== "FULL" && c.bookable !== false && !c.booking_closed; }); };
 
   /* ---------- hero: the next few classes ---------- */
   var upEl = $("#upNext"), kidsPage = qs.get("for") === "kids";
@@ -382,10 +382,12 @@
         var head = i === 0 ? "Today" : i === 1 ? "Tomorrow" : d.toLocaleDateString("en-US", { weekday: "long" });
         out.push('<div class="wday' + (i === 0 ? " today" : "") + '"><h4>' + head + "<small>" + d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) + "</small></h4>" +
           (day.length ? day.map(function (c) {
-            var past = c._start.getTime() <= now, full = c.state === "FULL", notBookable = c.bookable === false;
+            var past = c._start.getTime() <= now, full = c.state === "FULL", notBookable = c.bookable === false, closed = c.booking_closed === true;
             var tag = full ? '<em class="x">Full</em>' : isKids(c) ? '<em class="x">Kids 4 to 12</em>' : (c.level === "experienced" || isAdvanced(c.name)) ? '<em class="x">Experienced</em>' : (c.level === "beginner" || isBeginner(c.name)) ? "<em>Beginner friendly</em>" : "<em>All levels</em>";
             var inner = "<span>" + esc(c.time_label) + "</span><b>" + esc(c.name) + "</b>" + tag;
-            return past || full || notBookable ? '<div class="wcls ' + kind(c) + (past ? " past" : "") + '">' + inner + (notBookable && !past ? '<em class="x">Instructor permission required</em>' : "") + "</div>"
+            // A class stays on the schedule until its day ends (people check the time of the class they booked); online booking just closes 30 minutes before it starts.
+            var note = notBookable && !past ? '<em class="x">Instructor permission required</em>' : closed && !past ? '<em class="x">Starting soon · online booking closed</em>' : closed && past && c.closed_reason === "STARTED" ? '<em class="x">In progress</em>' : "";
+            return past || full || notBookable || closed ? '<div class="wcls ' + kind(c) + (past ? " past" : "") + '">' + inner + note + "</div>"
               : '<a class="wcls ' + kind(c) + '" ' + bookAttrs(c) + ' data-track="cta_week" title="Book ' + esc(c.name) + ' as your free trial">' + inner + "</a>";
           }).join("") : '<div class="wcls past" style="border-left-color:var(--line)"><b style="font-weight:500;color:var(--muted)">No classes</b></div>') + "</div>");
       }
