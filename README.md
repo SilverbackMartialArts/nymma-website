@@ -20,7 +20,7 @@ It never talks to your live CRM (`crmBase` is empty) and nothing in the CRM was 
 | **Proof strip** | 2 free classes, $0 registration fee, adult classes 7 days a week, 2 black belts. |
 | **Free trial pass** | Spells out exactly what the trial includes (worth $56 at drop-in prices) next to the 3 steps. |
 | **Class finder** | Two taps (who's training + main goal) recommends a first class and shows its next real times. |
-| **Programs** | Kickboxing, NoGi Jiu-Jitsu, Wrestling, MMA with real photos and class times. |
+| **Programs** | Kickboxing, NoGi Jiu-Jitsu, MMA with real photos and class times. |
 | **Never trained?** | Answers the 4 things beginners worry about. |
 | **Your first class** | What happens start to finish, and what to bring. |
 | **Schedule** | "Next 7 days" view (default) plus the month calendar. Every class is bookable except Sunday Sparring, which is shown for information only (`bookable: false` in `config.js`). |

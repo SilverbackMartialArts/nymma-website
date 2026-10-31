@@ -18,8 +18,8 @@ window.SILVERBACK = {
   // Keep them matching the CRM plans. For kids, "3m" is the "3 months or longer" price (12m is the same).
   plans: [
     { key: "kickboxing", name: "Kickboxing",   includes: "Kickboxing + MMA classes",                          mtm: 179, "3m": 169, "12m": 149 },
-    { key: "allaccess",  name: "All Access",   includes: "Every adult class: kickboxing, NoGi jiu-jitsu, wrestling & MMA", mtm: 199, "3m": 189, "12m": 169 },
-    { key: "grappling",  name: "Grappling",    includes: "NoGi jiu-jitsu, wrestling & MMA",                   mtm: 189, "3m": 179, "12m": 159 },
+    { key: "allaccess",  name: "All Access",   includes: "Every adult class: kickboxing, NoGi jiu-jitsu & MMA",         mtm: 199, "3m": 189, "12m": 169 },
+    { key: "grappling",  name: "Grappling",    includes: "NoGi jiu-jitsu & MMA",                                    mtm: 189, "3m": 179, "12m": 159 },
     { key: "kids",       name: "Kids program", includes: "Ages 4 to 12: kids jiu-jitsu & kickboxing",         mtm: 150, "3m": 130, "12m": 130, kids: true }
   ],
   // Paying every 2 weeks. "yearly" = same cost per year as paying monthly (monthly price x 12 / 26, to the cent).
@@ -76,8 +76,7 @@ window.SILVERBACK = {
 
     { day: "Wednesday", time: "6:30 PM", name: "Fundamentals NoGi Jiu-Jitsu", group: "adult", program: "grappling", level: "beginner" },
 
-    { day: "Thursday",  time: "7:30 PM", name: "Wrestling",                 group: "adult", program: "grappling", level: "all" },
-    { day: "Thursday",  time: "8:30 PM", name: "NoGi Jiu-Jitsu",            group: "adult", program: "grappling", level: "all" },
+    { day: "Thursday",  time: "7:30 PM", name: "NoGi Jiu-Jitsu",            group: "adult", program: "grappling", level: "all" },
 
     { day: "Friday",    time: "5:00 PM", name: "Kids Martial Arts",         group: "kids",  program: "kids",      level: "beginner" },
     { day: "Friday",    time: "6:00 PM", name: "Kickboxing",                group: "adult", program: "striking",  level: "beginner" },

@@ -152,7 +152,7 @@
     if (!s) return null;
     if (s.indexOf("kids") > -1) return "kids";
     if (/kickbox/.test(s)) return "kickboxing";
-    if (/jiu-?jitsu|fundamentals|wrestling|grappl/.test(s)) return "grappling";
+    if (/jiu-?jitsu|fundamentals|grappl/.test(s)) return "grappling";
     if (/\bmma\b/.test(s)) return "allaccess"; // MMA training draws on both striking and grappling classes
     return null;
   }
@@ -321,8 +321,8 @@
         why: "Technique and leverage over size and strength. Fundamentals classes are built for people who have never trained." },
       { id: "mma", label: "Learn MMA", title: "Mixed Martial Arts", book: "MMA", match: /\bmma\b/i,
         why: "Striking, takedowns and ground work together. You don't need any experience to start learning MMA." },
-      { id: "grapple", label: "Grappling", title: "NoGi Jiu-Jitsu", book: "Jiu-Jitsu", match: /jiu-jitsu|wrestling/i, skipAdvanced: true,
-        why: "Start with Fundamentals on Monday or Wednesday if you're new. Wrestling on Thursday nights is a great add-on." },
+      { id: "grapple", label: "Grappling", title: "NoGi Jiu-Jitsu", book: "Jiu-Jitsu", match: /jiu-jitsu/i, skipAdvanced: true,
+        why: "Start with Fundamentals on Monday or Wednesday if you're new. Thursday night at 7:30 is a great add-on." },
       { id: "confidence", label: "Build confidence", title: "Kickboxing", book: "Kickboxing", match: /kickboxing/i,
         why: "Learning real technique in a room that welcomes beginners is a great place to start. Go at your own pace." },
       { id: "curious", label: "Just curious", title: "Try both, free", book: "", match: /kickboxing|fundamentals/i,

@@ -217,7 +217,7 @@ p{margin:0 0 1em}
 .rec-alt a{color:var(--ink);font-weight:700}
 
 /* ============ programs ============ */
-.progs{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.progs{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}   /* three programs: Kickboxing, NoGi Jiu-Jitsu, MMA (Wrestling was removed 2026-10-30) */
 @media(max-width:820px){.progs{grid-template-columns:1fr}}
 /* Photo always sits full-width on top of the text (never squeezed into a narrow side column) so it keeps a
    sane landscape crop at every screen size, instead of stretching into a tall, badly-cropped sliver on wide screens. */
